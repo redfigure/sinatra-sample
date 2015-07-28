@@ -1,0 +1,78 @@
+#!/bin/bash
+
+readonly MODE="development"
+readonly PROGRAM_NAME="`basename ${0}`"
+readonly BASE_DIR="${PWD}"
+readonly CONFIG_DIR="${BASE_DIR}/config"
+readonly LOG_DIR="${BASE_DIR}"
+readonly PID_DIR="${BASE_DIR}"
+readonly LOG_FILE="${LOG_DIR}/${PROGRAM_NAME}.log"
+readonly PID_FILE="${PID_DIR}/${PROGRAM_NAME}.pid"
+readonly INIT="bundle exec rackup -E ${MODE} ${CONFIG_DIR}/config.ru"
+
+start(){
+    if [ -e $PID_FILE ] ; then
+        PID=`cat ${PID_FILE}`
+        echo "[ ABORT ] ${PROGRAM_NAME} is already running. (pid ${PID})"
+        exit 1
+    fi
+
+    echo -n "Starting ${PROGRAM_NAME} .. "
+    nohup $INIT > $LOG_FILE 2>&1 &
+
+    if [ $? -eq 0 ] ; then
+        echo "[ OK ]"
+        PID=`ps -ef | grep "[r]ackup -E ${MODE} ${CONFIG_DIR}/config.ru" | awk '{print $2}'`
+        echo $PID > $PID_FILE
+    else
+        echo "[ FAILED ]"
+        exit 1
+    fi
+}
+
+stop(){
+    if [ ! -s $PID_FILE ] ; then
+        echo "[ ABORT ] ${PROGRAM_NAME} is not running."
+        exit 1
+    fi
+
+    echo -n "Stopping ${PROGRAM_NAME} .. "
+    cat $PID_FILE | xargs kill
+
+    if [ $? -eq 0 ] ; then
+        echo "[ OK ]"
+        rm -f $PID_FILE
+    else
+        echo "[ FAILED ]"
+        exit 1
+    fi
+}
+
+status(){
+    if [ -e $PID_FILE ] ; then
+        echo "${PROGRAM_NAME} is running."
+    else
+        echo "${PROGRAM_NAME} is not running."
+    fi
+}
+
+
+case "$1" in
+    start)
+    start
+    ;;
+    stop)
+    stop
+    ;;
+    restart)
+    stop
+    sleep 1
+    start
+    ;;
+    status)
+    status
+    ;;
+    *)
+    echo $"Usage: ${PROGRAM_NAME} {start|stop|restart}"
+    exit 1
+esac
