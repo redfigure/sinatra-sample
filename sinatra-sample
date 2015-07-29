@@ -22,7 +22,7 @@ start(){
 
     if [ $? -eq 0 ] ; then
         echo "[ OK ]"
-        PID=`ps -ef | grep "[r]ackup -E ${MODE} ${CONFIG_DIR}/config.ru" | awk '{print $2}'`
+        PID=`ps -ef | grep "[r]ackup ${CONFIG_DIR}/config.ru" | awk '{print $2}'`
         echo $PID > $PID_FILE
     else
         echo "[ FAILED ]"
