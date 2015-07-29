@@ -8,7 +8,7 @@ readonly LOG_DIR="${BASE_DIR}"
 readonly PID_DIR="${BASE_DIR}"
 readonly LOG_FILE="${LOG_DIR}/${PROGRAM_NAME}.log"
 readonly PID_FILE="${PID_DIR}/${PROGRAM_NAME}.pid"
-readonly INIT="bundle exec rackup -E ${MODE} ${CONFIG_DIR}/config.ru"
+readonly INIT="bundle exec rackup ${CONFIG_DIR}/config.ru"
 
 start(){
     if [ -e $PID_FILE ] ; then
@@ -18,7 +18,7 @@ start(){
     fi
 
     echo -n "Starting ${PROGRAM_NAME} .. "
-    nohup $INIT > $LOG_FILE 2>&1 &
+    RACK_ENV=${MODE} nohup $INIT > $LOG_FILE 2>&1 &
 
     if [ $? -eq 0 ] ; then
         echo "[ OK ]"
